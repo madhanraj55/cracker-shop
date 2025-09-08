@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cracker Shop — Products</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header>
+  <h1>🔥 Crackers Online</h1>
+  <div class="nav-right">
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="myorders.html">My Orders</a>
+      <a href="contact.html">Contact</a>
+      <a href="about.html">About</a>
+      <a href="admin.html">Admin Login</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section id="products" class="active">
+    <h2>Our Crackers</h2>
+    <div class="grid" id="productList"></div>
+
+    <h3 style="margin-top:20px">Your Cart</h3>
+    <div class="card cart-box">
+      <div id="cartItems">No items in cart</div>
+      <div style="margin-top:10px">
+        <div class="small">Total: ₹<span id="cartTotal">0</span></div>
+        <button id="clearCart">Clear Cart</button>
+      </div>
+    </div>
+
+    <h3 style="margin-top:20px">Confirm Order</h3>
+    <div class="card">
+      <form id="orderForm">
+        <label><strong>Your Name</strong></label>
+        <input id="name" required placeholder="Your name" />
+        <label><strong>Phone</strong></label>
+        <input id="phone" required placeholder="10-digit phone number" />
+        <label><strong>Address</strong></label>
+        <textarea id="address" rows="4" required placeholder="Delivery address"></textarea>
+        <div style="margin-top:8px">
+          <button type="submit">Place Order (Cash on Delivery)</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>© Crackers Online — Built by You.</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAinS1IwwgyOD6TEcip-eeZtdV26klFBSo",
+  authDomain: "launch-7439e.firebaseapp.com",
+  databaseURL: "https://launch-7439e-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "launch-7439e",
+  storageBucket: "launch-7439e.appspot.com",
+  messagingSenderId: "671432454143",
+  appId: "1:671432454143:web:fcaef37ae3f70556e5c1ca",
+  measurementId: "G-TQVP7ZJ510"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// Products with images
+const products = [
+  { id: 1, name: "Flower Pot", price: 100, image: "assets/images/flowerpot.jpg" },
+  { id: 2, name: "Sparklers", price: 50, image: "assets/images/sparklers.jpg" },
+  { id: 3, name: "Rocket", price: 150, image: "assets/images/rocket.jpg" },
+  { id: 4, name: "Chakki", price: 120, image: "assets/images/chakki.jpg" },
+  { id: 5, name: "Atom Bomb", price: 80, image: "assets/images/atombomb.jpg" }
+];
+
+// Cart
+window.cart = [];
+const productList = document.getElementById("productList");
+const cartItems = document.getElementById("cartItems");
+const cartTotal = document.getElementById("cartTotal");
+
+// Render products
+function renderProducts(){
+  productList.innerHTML = "";
+  products.forEach(p=>{
+    const div = document.createElement("div");
+    div.className = "card product";
+    div.innerHTML = `
+      <img src="${p.image}" alt="${p.name}" style="width:100%;height:150px;object-fit:cover;border-radius:6px">
+      <div><strong>${p.name}</strong></div>
+      <div class="price">₹${p.price}</div>
+      <label>Quantity: <input type="number" min="1" value="1" style="width:50px;"></label>
+      <div style="margin-top:10px">
+        <button>Add to Cart</button>
+      </div>
+    `;
+    productList.appendChild(div);
+
+    const qtyInput = div.querySelector("input");
+    div.querySelector("button").addEventListener("click", ()=> addToCart(p, Number(qtyInput.value)));
+  });
+}
+
+// Add to cart
+function addToCart(product, qty){
+  const existing = window.cart.find(i=>i.id===product.id);
+  if(existing){ existing.qty += qty; }
+  else{ window.cart.push({...product, qty}); }
+  updateCart();
+}
+
+// Remove from cart
+function removeFromCart(index){
+  window.cart.splice(index,1);
+  updateCart();
+}
+
+// Update cart
+function updateCart(){
+  if(window.cart.length===0){
+    cartItems.innerHTML = "No items in cart";
+    cartTotal.textContent = "0";
+    return;
+  }
+
+  cartItems.innerHTML = "";
+  let total = 0;
+  window.cart.forEach((item,index)=>{
+    total += item.price*item.qty;
+    const div = document.createElement("div");
+    div.innerHTML = `${item.name} - ₹${item.price} x ${item.qty} = ₹${item.price*item.qty} 
+      <button data-index="${index}" style="margin-left:10px">Remove</button>`;
+    cartItems.appendChild(div);
+    div.querySelector("button").addEventListener("click", ()=> removeFromCart(index));
+  });
+  cartTotal.textContent = total;
+}
+
+// Clear cart
+document.getElementById("clearCart").addEventListener("click", ()=>{
+  window.cart=[];
+  updateCart();
+});
+
+// Place order
+document.getElementById("orderForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  if(window.cart.length===0){ alert("Your cart is empty!"); return; }
+
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const address = document.getElementById("address").value.trim();
+  if(!name || !phone || !address){ alert("Please fill all fields"); return; }
+
+  const orderData = { customer:{name, phone, address}, cart:window.cart, timestamp:Date.now() };
+
+  push(ref(db,"orders"), orderData)
+    .then(()=>{
+      alert("Order placed successfully!");
+      window.cart=[];
+      updateCart();
+      e.target.reset();
+    })
+    .catch(err=>{
+      console.error(err);
+      alert("Error placing order: "+err.message);
+    });
+});
+
+// Initial render
+renderProducts();
+updateCart();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,248 @@
+:root{
+  --accent:#d32f2f;
+  --accent-dark:#9a1f1f;
+  --muted:#666;
+  --bg-card:#fff;
+  --border-card:#eee;
+  --hover-shadow:0 8px 20px rgba(0,0,0,0.15);
+  --transition-speed:0.3s;
+}
+
+body{
+  font-family:Inter,Arial,Helvetica,sans-serif;
+  margin:0;
+  color:#222;
+  background:linear-gradient(to bottom, #fff8f8, #ffecec);
+  transition: background var(--transition-speed);
+}
+
+header{
+  background:linear-gradient(90deg,var(--accent),var(--accent-dark));
+  color:#fff;
+  padding:12px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 3px 10px rgba(0,0,0,0.2);
+  position: sticky;
+  top:0;
+  z-index:1000;
+}
+
+header h1{
+  margin:0;
+  font-size:1.3rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+nav a{
+  color:#fff;
+  text-decoration:none;
+  margin-left:12px;
+  padding:6px 10px;
+  border-radius:8px;
+  position:relative;
+  transition: all var(--transition-speed);
+}
+
+nav a::after{
+  content:"";
+  position:absolute;
+  width:0%;
+  height:2px;
+  background:#fff;
+  left:0;
+  bottom:0;
+  transition:0.3s;
+}
+
+nav a:hover::after{
+  width:100%;
+}
+
+nav a:hover{
+  background:rgba(255,255,255,0.2);
+  transform: scale(1.05);
+}
+
+main{
+  padding:18px;
+  max-width:1100px;
+  margin:0 auto;
+}
+
+section{
+  display:none;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+section.active{
+  display:block;
+}
+
+@keyframes fadeIn{
+  from{opacity:0; transform: translateY(10px);}
+  to{opacity:1; transform: translateY(0);}
+}
+
+.hero{
+  background:linear-gradient(120deg, #ffe1e1, #fff3f3);
+  padding:18px;
+  border-radius:12px;
+  margin-bottom:18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+  transition: all var(--transition-speed);
+}
+
+.hero:hover{
+  transform: translateY(-3px);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;
+}
+
+.card{
+  border:1px solid var(--border-card);
+  padding:12px;
+  border-radius:12px;
+  background:var(--bg-card);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  transition: all 0.3s ease-in-out;
+}
+
+.card:hover{
+  transform: translateY(-5px);
+  box-shadow:var(--hover-shadow);
+}
+
+.product img{
+  width:100%;
+  height:150px;
+  object-fit:cover;
+  border-radius:8px;
+  margin-bottom:10px;
+  transition: transform 0.3s;
+}
+
+.product img:hover{
+  transform: scale(1.05);
+}
+
+.product .price{
+  font-weight:700;
+  margin:6px 0;
+  color:var(--accent-dark);
+}
+
+.product label{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  margin-bottom:8px;
+}
+
+button{
+  background:linear-gradient(45deg,var(--accent),var(--accent-dark));
+  color:#fff;
+  border:0;
+  padding:10px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  transition: all var(--transition-speed);
+}
+
+button:hover{
+  transform: scale(1.05);
+  box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+
+button.secondary{
+  background:#555;
+}
+
+.cart-box{
+  border:1px dashed #ddd;
+  padding:12px;
+  border-radius:8px;
+  background: #fff8f8;
+  transition: all var(--transition-speed);
+}
+
+.cart-box div{
+  transition: all 0.3s ease;
+}
+
+.cart-box div:hover{
+  transform: scale(1.02);
+}
+
+input,textarea{
+  width:100%;
+  padding:8px;
+  margin:6px 0;
+  border:1px solid #ccc;
+  border-radius:6px;
+  box-sizing:border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus,textarea:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 6px rgba(211,47,47,0.3);
+  outline:none;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  border:1px solid #eee;
+  padding:8px;
+  text-align:left;
+  font-size:0.95rem;
+}
+
+.topbar-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.small{
+  font-size:0.9rem;
+  color:var(--muted);
+}
+
+footer{
+  margin-top:30px;
+  padding:12px;
+  text-align:center;
+  color:#666;
+}
+
+.nav-right{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+@media(max-width:700px){
+  .hero{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .grid{
+    grid-template-columns:1fr;
+  }
+}

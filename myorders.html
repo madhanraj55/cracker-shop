@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cracker Shop — My Orders</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header>
+  <h1>🔥 Crackers Online</h1>
+  <div class="nav-right">
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="index.html#products">Products</a>
+      <a href="myorders.html">My Orders</a>
+      <a href="contact.html">Contact</a>
+      <a href="about.html">About</a>
+      <a href="admin.html">Admin Login</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section id="myorders" class="active">
+  <h2>My Orders</h2>
+  <div class="card">
+    <p class="small">Enter the phone number you used while placing order to view your orders.</p>
+    <input id="lookupPhone" placeholder="Enter your phone number" />
+    <div style="margin-top:8px">
+      <button id="lookupBtn">Find My Orders</button>
+    </div>
+    <div style="margin-top:12px" id="myOrdersResult"></div>
+  </div>
+</section>
+</main>
+
+<footer>© Crackers Online — Built by You.</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAinS1IwwgyOD6TEcip-eeZtdV26klFBSo",
+    authDomain: "launch-7439e.firebaseapp.com",
+    databaseURL: "https://launch-7439e-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    projectId: "launch-7439e",
+    storageBucket: "launch-7439e.appspot.com",
+    messagingSenderId: "671432454143",
+    appId: "1:671432454143:web:fcaef37ae3f70556e5c1ca",
+    measurementId: "G-TQVP7ZJ510"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+document.getElementById("lookupBtn").addEventListener("click", async () => {
+  const phone = document.getElementById("lookupPhone").value.trim();
+  const container = document.getElementById("myOrdersResult");
+  if(!phone){ 
+    container.innerHTML = "<div class='small' style='color:red'>Enter phone number</div>"; 
+    return; 
+  }
+
+  try {
+    const snapshot = await get(child(ref(db), 'orders'));
+    if(!snapshot.exists()){ 
+      container.innerHTML = "<div class='small'>No orders yet</div>"; 
+      return; 
+    }
+    const all = snapshot.val();
+    const matching = Object.values(all).filter(o => o.customer.phone === phone);
+    if(matching.length === 0){ 
+      container.innerHTML = "<div class='small'>No orders found</div>"; 
+      return; 
+    }
+
+    container.innerHTML = matching.map(o => {
+      const itemsRows = o.cart.map(ci => `
+        <tr>
+          <td>${ci.name}</td>
+          <td>${ci.qty ? ci.qty : 1}</td>
+          <td>₹${ci.price}</td>
+          <td>₹${ci.price * (ci.qty ? ci.qty : 1)}</td>
+        </tr>
+      `).join("");
+
+      const total = o.cart.reduce((sum, ci) => sum + ci.price * (ci.qty ? ci.qty : 1), 0);
+      const time = new Date(o.timestamp).toLocaleString();
+
+      return `
+        <div class="card" style="margin-bottom:8px">
+          <div><strong>${o.customer.name}</strong> — ${o.customer.phone}</div>
+          <div class="small">${o.customer.address}</div>
+          <table style="width:100%;margin-top:6px;border:1px solid #eee;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsRows}
+            </tbody>
+          </table>
+          <div class="small" style="margin-top:6px"><strong>Total: ₹${total}</strong> • ${time}</div>
+        </div>
+      `;
+    }).join("");
+
+  } catch(err){ 
+    container.innerHTML = "<div class='small' style='color:red'>Error fetching orders</div>"; 
+    console.error(err);
+  }
+});
+</script>
+</body>
+</html>

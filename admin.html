@@ -1,202 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Cracker Shop — Admin</title>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cracker Shop — Admin</title>
+  <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<header>
-  <h1>🔥 Crackers Online</h1>
-  <div class="nav-right">
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="index.html#products">Products</a>
-      <a href="myorders.html">My Orders</a>
-      <a href="contact.html">Contact</a>
-      <a href="about.html">About</a>
-      <a href="admin.html">Admin Login</a>
-    </nav>
-  </div>
-</header>
-
-<main>
-<section id="admin" class="active">
-  <h2>Admin — Login</h2>
-  <div class="card" id="adminBox">
-    <div id="adminLoginForm">
-      <p class="small">Sign in with the shop admin email (Email/Password)</p>
-      <input id="adminEmail" type="email" placeholder="admin@example.com" />
-      <input id="adminPass" type="password" placeholder="password" />
-      <div style="margin-top:8px">
-        <button id="adminLoginBtn">Login</button>
-      </div>
-      <p id="adminMsg" class="small" style="color:red"></p>
+  <header>
+    <h1>🔥 Crackers Online</h1>
+    <div class="nav-right">
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="index.html#products">Products</a>
+        <a href="myorders.html">My Orders</a>
+        <a href="contact.html">Contact</a>
+        <a href="about.html">About</a>
+        <a href="admin.html">Admin Login</a>
+      </nav>
     </div>
+  </header>
 
-    <div id="adminPanel" style="display:none;margin-top:12px">
-      <button id="adminLogout" class="secondary">Logout</button>
+  <main>
+    <section id="admin" class="active">
+      <h2>Admin — Login</h2>
+      <div class="card" id="adminBox">
+        <div id="adminLoginForm">
+          <p class="small">Sign in with the shop admin email (Email/Password)</p>
+          <input id="adminEmail" type="email" placeholder="admin@example.com" />
+          <input id="adminPass" type="password" placeholder="password" />
+          <div style="margin-top:8px">
+            <button id="adminLoginBtn">Login</button>
+          </div>
+          <p id="adminMsg" class="small" style="color:red"></p>
+        </div>
 
-      <div class="topbar-actions" style="margin-top:12px;margin-bottom:12px">
-        <input id="searchPhone" placeholder="Search by phone number" />
-        <button id="searchBtn">Search</button>
-        <button id="exportPDF">Export PDF</button>
+        <div id="adminPanel" style="display:none;margin-top:12px">
+          <button id="adminLogout" class="secondary">Logout</button>
+
+          <div class="topbar-actions" style="margin-top:12px;margin-bottom:12px">
+            <input id="searchPhone" placeholder="Search by phone number" />
+            <button id="searchBtn">Search</button>
+            <!-- Export PDF button removed -->
+          </div>
+
+          <h3>All Orders</h3>
+          <div id="adminOrdersContainer">Loading orders...</div>
+        </div>
       </div>
+    </section>
+  </main>
 
-      <h3>All Orders</h3>
-      <div id="adminOrdersContainer">Loading orders...</div>
-    </div>
-  </div>
-</section>
-</main>
+  <footer>© Crackers Online — Built by You.</footer>
 
-<footer>© Crackers Online — Built by You.</footer>
+  <!-- jsPDF CDN (still here in case you add PDF later) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<!-- jsPDF CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyAinS1IwwgyOD6TEcip-eeZtdV26klFBSo",
+      authDomain: "launch-7439e.firebaseapp.com",
+      databaseURL: "https://launch-7439e-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "launch-7439e",
+      storageBucket: "launch-7439e.appspot.com",
+      messagingSenderId: "671432454143",
+      appId: "1:671432454143:web:fcaef37ae3f70556e5c1ca",
+      measurementId: "G-TQVP7ZJ510"
+    };
 
-const firebaseConfig = {
-    apiKey: "AIzaSyAinS1IwwgyOD6TEcip-eeZtdV26klFBSo",
-    authDomain: "launch-7439e.firebaseapp.com",
-    databaseURL: "https://launch-7439e-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    projectId: "launch-7439e",
-    storageBucket: "launch-7439e.appspot.com",
-    messagingSenderId: "671432454143",
-    appId: "1:671432454143:web:fcaef37ae3f70556e5c1ca",
-    measurementId: "G-TQVP7ZJ510"
-};
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
+    const adminLoginBtn = document.getElementById("adminLoginBtn");
+    const adminMsg = document.getElementById("adminMsg");
+    const adminPanel = document.getElementById("adminPanel");
+    const adminOrdersContainer = document.getElementById("adminOrdersContainer");
+    const adminLogoutBtn = document.getElementById("adminLogout");
 
-const adminLoginBtn = document.getElementById("adminLoginBtn");
-const adminMsg = document.getElementById("adminMsg");
-const adminPanel = document.getElementById("adminPanel");
-const adminOrdersContainer = document.getElementById("adminOrdersContainer");
-const adminLogoutBtn = document.getElementById("adminLogout");
+    let allOrders = []; // Store orders in memory
 
-let allOrders = []; // Store orders in memory
+    // Login
+    adminLoginBtn.addEventListener("click", () => {
+      const email = document.getElementById("adminEmail").value.trim();
+      const pass = document.getElementById("adminPass").value.trim();
+      if (!email || !pass) {
+        adminMsg.textContent = "Enter email and password";
+        return;
+      }
+      adminMsg.textContent = "Signing in...";
+      signInWithEmailAndPassword(auth, email, pass)
+        .then(() => {
+          adminMsg.textContent = "";
+        })
+        .catch(err => {
+          adminMsg.textContent = "Error: " + err.message;
+        });
+    });
 
-// Login
-adminLoginBtn.addEventListener("click", () => {
-    const email = document.getElementById("adminEmail").value.trim();
-    const pass = document.getElementById("adminPass").value.trim();
-    if(!email || !pass){ adminMsg.textContent = "Enter email and password"; return; }
-    adminMsg.textContent = "Signing in...";
-    signInWithEmailAndPassword(auth, email, pass)
-        .then(()=>{ adminMsg.textContent = ""; })
-        .catch(err=>{ adminMsg.textContent = "Error: "+err.message; });
-});
+    // Logout
+    adminLogoutBtn.addEventListener("click", () => signOut(auth));
 
-// Logout
-adminLogoutBtn.addEventListener("click", ()=>signOut(auth));
-
-// Auth state listener
-onAuthStateChanged(auth, user => {
-    if(user){
+    // Auth state listener
+    onAuthStateChanged(auth, user => {
+      if (user) {
         document.getElementById("adminLoginForm").style.display = "none";
         adminPanel.style.display = "block";
         loadOrders();
-    } else {
+      } else {
         document.getElementById("adminLoginForm").style.display = "block";
         adminPanel.style.display = "none";
         adminOrdersContainer.innerHTML = "Loading orders...";
-    }
-});
+      }
+    });
 
-// Load orders
-function loadOrders(){
-    const ordersRef = ref(db, "orders");
-    onValue(ordersRef, snapshot => {
+    // Load orders
+    function loadOrders() {
+      const ordersRef = ref(db, "orders");
+      onValue(ordersRef, snapshot => {
         const val = snapshot.val();
-        if(!val){ adminOrdersContainer.innerHTML="<div class='small'>No orders yet</div>"; allOrders=[]; return; }
+        if (!val) {
+          adminOrdersContainer.innerHTML = "<div class='small'>No orders yet</div>";
+          allOrders = [];
+          return;
+        }
 
-        allOrders = Object.values(val).map(o => {
+        allOrders = Object.values(val)
+          .map(o => {
             const total = o.cart.reduce((sum, ci) => sum + ci.price * (ci.qty ? ci.qty : 1), 0);
-            return {...o, total};
-        });
+            return { ...o, total };
+          })
+          .sort((a, b) => b.timestamp - a.timestamp); // Newest orders first
 
         renderOrders(allOrders);
-    }, err => {
+      }, err => {
         console.error(err);
-        adminOrdersContainer.innerHTML="<div class='small' style='color:red'>Error loading orders</div>";
-    });
-}
+        adminOrdersContainer.innerHTML = "<div class='small' style='color:red'>Error loading orders</div>";
+      });
+    }
 
-// Render orders
-function renderOrders(orders){
-    adminOrdersContainer.innerHTML = orders.map(o => {
+    // Render orders
+    function renderOrders(orders) {
+      adminOrdersContainer.innerHTML = orders.map(o => {
         const itemsRows = o.cart.map(ci => `
-            <tr>
-              <td>${ci.name}</td>
-              <td>${ci.qty ? ci.qty : 1}</td>
-              <td>₹${ci.price}</td>
-              <td>₹${ci.price * (ci.qty ? ci.qty : 1)}</td>
-            </tr>
+          <tr>
+            <td>${ci.name}</td>
+            <td>${ci.qty ? ci.qty : 1}</td>
+            <td>₹${ci.price}</td>
+            <td>₹${ci.price * (ci.qty ? ci.qty : 1)}</td>
+          </tr>
         `).join("");
 
         const time = new Date(o.timestamp).toLocaleString();
         return `
-            <div class="card" style="margin-bottom:8px">
-                <div><strong>${o.customer.name}</strong> — ${o.customer.phone}</div>
-                <div class="small">${o.customer.address}</div>
-                <table style="width:100%;margin-top:6px;border:1px solid #eee;border-collapse:collapse">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Qty</th>
-                            <th>Price</th>
-                            <th>Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemsRows}
-                    </tbody>
-                </table>
-                <div class="small" style="margin-top:6px"><strong>Total: ₹${o.total}</strong> • ${time}</div>
-            </div>
+          <div class="card" style="margin-bottom:8px">
+            <div><strong>${o.customer.name}</strong> — ${o.customer.phone}</div>
+            <div class="small">${o.customer.address}</div>
+            <table style="width:100%;margin-top:6px;border:1px solid #eee;border-collapse:collapse">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsRows}
+              </tbody>
+            </table>
+            <div class="small" style="margin-top:6px"><strong>Total: ₹${o.total}</strong> • ${time}</div>
+          </div>
         `;
-    }).join("");
-}
+      }).join("");
+    }
 
-// Search orders by phone
-document.getElementById("searchBtn").addEventListener("click", ()=>{
-    const phone = document.getElementById("searchPhone").value.trim();
-    if(!phone){ renderOrders(allOrders); return; }
-    const filtered = allOrders.filter(o => o.customer.phone.includes(phone));
-    renderOrders(filtered);
-});
-
-// Export to PDF
-document.getElementById("exportPDF").addEventListener("click", () => {
-    if(allOrders.length===0){ alert("No orders to export"); return; }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    let y = 10;
-    allOrders.forEach(o => {
-        doc.setFontSize(12);
-        doc.text(`Name: ${o.customer.name}`, 10, y); y+=6;
-        doc.text(`Phone: ${o.customer.phone}`, 10, y); y+=6;
-        doc.text(`Address: ${o.customer.address}`, 10, y); y+=6;
-        doc.text("Items:", 10, y); y+=6;
-        o.cart.forEach(ci=>{
-            doc.text(`- ${ci.name} x${ci.qty ? ci.qty : 1} @₹${ci.price} = ₹${ci.price * (ci.qty ? ci.qty : 1)}`, 12, y); y+=6;
-        });
-        doc.text(`Total: ₹${o.total}`, 10, y); y+=10;
-        if(y>270){ doc.addPage(); y=10; }
+    // Search orders by phone
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      const phone = document.getElementById("searchPhone").value.trim();
+      if (!phone) {
+        renderOrders(allOrders);
+        return;
+      }
+      const filtered = allOrders.filter(o => o.customer.phone.includes(phone));
+      renderOrders(filtered);
     });
-
-    doc.save("orders.pdf");
-    alert("PDF generated! You can share it on WhatsApp.");
-});
-</script>
+  </script>
 </body>
 </html>

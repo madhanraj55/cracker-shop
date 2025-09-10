@@ -1,3 +1,4 @@
+<!-- Save this as products.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,7 +75,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Products with images
+// Telegram Config
+const telegramBotToken = "8274511543:AAHP7QY6htHz1esZpw5tcRM7CS0Z-YRDws0";
+const telegramChatId = "5653428324";
+
+// Products
 const products = [
   { id: 1, name: "Flower Pot", price: 100, image: "assets/images/flowerpot.jpg" },
   { id: 2, name: "Sparklers", price: 50, image: "assets/images/sparklers.jpg" },
@@ -148,7 +153,7 @@ function updateCart(){
 
 // Clear cart
 document.getElementById("clearCart").addEventListener("click", ()=>{
-  window.cart=[];
+  window.cart = [];
   updateCart();
 });
 
@@ -162,18 +167,61 @@ document.getElementById("orderForm").addEventListener("submit", e=>{
   const address = document.getElementById("address").value.trim();
   if(!name || !phone || !address){ alert("Please fill all fields"); return; }
 
-  const orderData = { customer:{name, phone, address}, cart:window.cart, timestamp:Date.now() };
+  const orderData = {
+    customer: { name, phone, address },
+    cart: window.cart,
+    timestamp: Date.now()
+  };
 
+  // Push to Firebase
   push(ref(db,"orders"), orderData)
     .then(()=>{
       alert("Order placed successfully!");
-      window.cart=[];
-      updateCart();
       e.target.reset();
+
+      // Copy cart before clearing to keep order details
+      const cartSnapshot = [...window.cart];
+
+      window.cart = [];
+      updateCart();
+
+      // Send to Telegram
+      const message = `
+🧨 *New Order Placed!*
+👤 *Name:* ${name}
+📞 *Phone:* ${phone}
+🏠 *Address:* ${address}
+
+🛒 *Items:*
+${cartSnapshot.map(i => `${i.name} x ${i.qty} = ₹${i.price * i.qty}`).join('\n')}
+
+💰 *Total:* ₹${cartSnapshot.reduce((sum, i) => sum + i.price * i.qty, 0)}
+      `;
+
+      fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          chat_id: telegramChatId,
+          text: message,
+          parse_mode: "Markdown"
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.ok) {
+          console.error("Telegram Error:", data);
+        }
+      })
+      .catch(err => {
+        console.error("Telegram Fetch Error:", err);
+      });
     })
     .catch(err=>{
       console.error(err);
-      alert("Error placing order: "+err.message);
+      alert("Error placing order: "+err.message); 
     });
 });
 
